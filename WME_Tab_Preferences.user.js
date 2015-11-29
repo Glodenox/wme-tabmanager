@@ -124,7 +124,7 @@
     tabOrderPanel.className = 'result-list';
     tabOrderPanel.id = 'tabPreferencesOrder';
     tabOrderPanel.style.marginLeft = '30px';
-    tabOrderPanel.style.border = '1px solid '
+    tabOrderPanel.style.border = '1px solid black';
     tabOrderPanel.style.display = (localStorage.tabprefs_preserveOrder ? 'block' : 'none');
     formGroup.appendChild(tabOrderPanel);
     
