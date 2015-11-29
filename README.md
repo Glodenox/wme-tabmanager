@@ -11,7 +11,7 @@ This userscript augments the [Waze Map Editor](https://www.waze.com/editor/) by 
 
 ## Installation instructions
 
-> TL;DR: install as most other WME userscripts from its [Greasy Fork page](https://greasyfork.org/scripts/TODO)
+> TL;DR: install as most other WME userscripts from its [Greasy Fork page](https://greasyfork.org/scripts/14316-wme-tab-preferences)
 
 Userscripts are snippets of code that are executed after the loading of certain webpages. This script does this after the loading of the Waze Map Editor. In order to run userscripts in your browser, you are adviced to use Firefox or Google Chrome.
 
@@ -19,7 +19,7 @@ You will need to install an add-on that manages userscripts for this to work. If
 
 These add-ons will be visible in the browser with an additional button that is visible to the right of the address bar. Through this button it will be possible to maintain any userscripts you install.
 
-For WME Tab Preferences, you should be able to install the script at [Greasy Fork](https://greasyfork.org/scripts/TODO). There will be a big green install button which you will have to press to install the script.
+For WME Tab Preferences, you should be able to install the script at [Greasy Fork](https://greasyfork.org/scripts/14316-wme-tab-preferences). There will be a big green install button which you will have to press to install the script.
 __When installing userscripts always pay attention to the site(s) on which the script runs.__ This script only runs on Waze.com, so other sites will not be affected in any way.
 
 After installing a userscript, you will be able to find it working on the site(s) specified. Do note that if you had the page open before installing the userscript, you will first need to refresh the page.
@@ -39,4 +39,4 @@ The script adds additional options to the preferences tab. These options allow y
 
 ## Feedback and suggestions
 
-Any issues found can be reported at the [GitHub project page](https://github.com/Glodenox/wme-tabpreferences/issues). A forum thread will be made later when more maps are added. 
+Any issues found can be reported at the [GitHub project page](https://github.com/Glodenox/wme-tabpreferences/issues). A forum thread will be added later. 
