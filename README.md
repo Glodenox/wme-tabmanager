@@ -8,6 +8,7 @@ This userscript augments the [Waze Map Editor](https://www.waze.com/editor/) by 
 - Preserve the order of the tabs over sessions
 - Reorder the tabs in any way you like
 - Make the width of the sidepanel constant by adding the scrollbar by default
+- Make it possible to hide the paragraph that details how far you can edit and save valuable screen estate
 
 ## Installation instructions
 
@@ -32,6 +33,7 @@ GreaseMonkey and TamperMonkey will occasionally check for new versions of these 
 
 The script adds additional options to the preferences tab. These options allow you to enable or disable the script's features:
 
+- 'Hide editing permissions paragraph': remove the paragraph saying how far you can edit as this isn't really useful information for an advanced editor.
 - 'Preserve opened tab over sessions': have the script reopen the tab you had selected during the last time you used the WME.
 - 'Preserve tab order over sessions': have the script rearrange the tabs to preserve the previous order when loading the WME. New tabs are added to the back. When selecting this option, an additional menu appears that allows you to rearrange the tabs to your liking.
 
@@ -39,4 +41,4 @@ The script adds additional options to the preferences tab. These options allow y
 
 ## Feedback and suggestions
 
-Any issues found can be reported at the [GitHub project page](https://github.com/Glodenox/wme-tabpreferences/issues). A forum thread will be added later. 
+I maintain a list of 'issues' I may want to work on at the [GitHub project page](https://github.com/Glodenox/wme-tabpreferences/issues). There is also a [forum thread on the Waze forums](https://www.waze.com/forum/viewforum.php?f=819) in which discussion can take place.
