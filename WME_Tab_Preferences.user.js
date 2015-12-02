@@ -5,6 +5,7 @@
 // @include     https://www.waze.com/*/editor/*
 // @include     https://www.waze.com/editor/*
 // @include     https://editor-beta.waze.com/*
+// @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
 // @version     0.2
 // @grant       none
 // ==/UserScript==
@@ -13,7 +14,26 @@
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we rearranged the tabs?
-      versions = ['0.1', '0.2'];
+      versions = ['0.1', '0.2'],
+      Storage = (function() {
+        var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []);
+        log(hashes.join());
+        return {
+          setTabVisibility: function(hash, visible) {
+            var hashIndex = hashes.indexOf(hash);
+            if (hashIndex !== -1 && visible) {
+              hashes.splice(hashIndex, 1);
+              localStorage.tabprefs_hidden = hashes.join();
+            } else if (hashIndex === -1 && !visible) {
+              hashes.push(hash);
+              localStorage.tabprefs_hidden = hashes.join();
+            }
+          },
+          isTabVisible: function(hash) {
+            return hashes.indexOf(hash) === -1;
+          }
+        };
+      })();
 
   function init() {
 		if (typeof I18n === 'undefined') {
@@ -82,6 +102,9 @@
     });
     for (var i = 0; i < tabs.children.length; i++) {
       selectionObserver.observe(tabs.children[i], { attributes: true, attributeFilter: ['class'] });
+      if (!Storage.isTabVisible(tabs.children[i].querySelector('a').hash)) {
+        tabs.children[i].style.display = 'none';
+      }
     }
     
     var tabObserver = new MutationObserver(function(mutationRecords) {
@@ -93,6 +116,9 @@
         if (mutationRecord.addedNodes.length > 0) {
           for (var i = 0; i < mutationRecord.addedNodes.length; i++) {
             selectionObserver.observe(mutationRecord.addedNodes[i], { attributes: true, attributeFilter: ['class'] });
+            if (!Storage.isTabVisible(mutationRecord.addedNodes[i].querySelector('a').hash)) {
+              mutationRecord.addedNodes[i].style.display = 'none';
+            }
           }
           reorderTabs();
         }
@@ -271,6 +297,7 @@
           moveUp = document.createElement('span'),
           moveDown = document.createElement('span'),
           remove = document.createElement('span'),
+          hide = document.createElement('span'),
           anchor = document.querySelector('#user-tabs .nav-tabs li a[href$="'+hash+'"]');
       if (anchor) {
         var title = anchor.title;
@@ -296,6 +323,22 @@
         });
         buttons.appendChild(remove);
       }
+      hide.className = (Storage.isTabVisible(hash) ? 'icon-eye-close' : 'icon-eye-open');
+      hide.style.cursor = 'pointer';
+      hide.style.marginLeft = '3px';
+      hide.title = I18n.t('tabpreferences.hide_tab');
+      hide.addEventListener('click', function() {
+        if (this.className === 'icon-eye-close') {
+          this.className = 'icon-eye-open';
+          anchor.parentNode.style.display = 'none';
+          Storage.setTabVisibility(hash, false);
+        } else {
+          this.className = 'icon-eye-close';
+          anchor.parentNode.style.display = 'block';
+          Storage.setTabVisibility(hash, true);
+        }
+      });
+      buttons.appendChild(hide);
       moveDown.className = 'icon-chevron-down';
       moveDown.style.cursor = 'pointer';
       moveDown.style.marginLeft = '3px';
