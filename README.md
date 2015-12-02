@@ -41,4 +41,4 @@ The script adds additional options to the preferences tab. These options allow y
 
 ## Feedback and suggestions
 
-I maintain a list of 'issues' I may want to work on at the [GitHub project page](https://github.com/Glodenox/wme-tabpreferences/issues). There is also a [forum thread on the Waze forums](https://www.waze.com/forum/viewforum.php?f=819) in which discussion can take place.
+I maintain a list of 'issues' I may want to work on at the [GitHub project page](https://github.com/Glodenox/wme-tabpreferences/issues). There is also a [forum thread on the Waze forums](https://www.waze.com/forum/viewtopic.php?f=819&t=168863) in which discussion can take place.
