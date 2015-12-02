@@ -5,13 +5,15 @@
 // @include     https://www.waze.com/*/editor/*
 // @include     https://www.waze.com/editor/*
 // @include     https://editor-beta.waze.com/*
-// @version     0.1
+// @version     0.2
 // @grant       none
 // ==/UserScript==
 
 (function() {
-  var tabReopened = false,
-      stack = 0;
+  var tabReopened = false, // have we reopened the tab from last time?
+      timesRan = 0, // variable for sanity check
+      tabsSecured = -1, // Up until which index have we rearranged the tabs?
+      versions = ['0.1', '0.2'];
 
   function init() {
 		if (typeof I18n === 'undefined') {
@@ -26,7 +28,13 @@
           title: 'Tab Preferences',
           preserve_tab: 'Preserve opened tab over sessions',
           preserve_order: 'Preserve tab order over sessions',
-          remove_tab: 'Tab no longer found. Remove entry?'
+          remove_tab: 'Tab no longer found. Remove entry?',
+          hide_permissions: 'Hide editing permissions paragraph'
+        },
+        update: {
+          first_run: 'Thanks for using Tab Preferences!\nThe settings tab on the left contains additional options now.\nThis message will only appear one time.',
+          v0_1: 'Initial version with tab memory and order preservation',
+          v0_2: 'Improvements to order preservation algorithm and addition of these messages'
         }
 			},
 			nl: {
@@ -45,6 +53,8 @@
 				I18n.translations[locale].tabpreferences = om_strings[locale];
 			}
 		}
+    
+    checkVersion();
     
     // Always add scrollbar to sidepanel to keep the width constant
     document.getElementById('sidebar').style.overflowY = 'scroll';
@@ -94,15 +104,18 @@
   }
 
   function initSettings() {
-    var prefsTab = document.querySelector('#sidepanel-prefs');
+    var prefsTab = document.querySelector('#sidepanel-prefs'),
+        permissions = document.querySelector('.permissions');
     if (!prefsTab) {
       log('No settings tab found yet, snoozing');
       setTimeout(initSettings, 400);
       return;
     }
-    var heading = document.createElement('h4');
+    var section = prefsTab.querySelector('.side-panel-section'),
+        heading = document.createElement('h4'),
+        tabOrderPanel = document.createElement('ul'),
+        formGroup = document.createElement('div');
     heading.appendChild(document.createTextNode(I18n.t('tabpreferences.prefs.title')));
-    var formGroup = document.createElement('div');
     formGroup.className = 'form-group';
     formGroup.appendChild(createOption('reopenTab', I18n.t('tabpreferences.prefs.preserve_tab'), (localStorage.tabprefs_reopenTab ? true : false), function() {
       if (this.checked) {
@@ -120,7 +133,6 @@
         document.getElementById('tabPreferencesOrder').style.display = 'none';
       }
     }));
-    var tabOrderPanel = document.createElement('ul');
     tabOrderPanel.className = 'result-list';
     tabOrderPanel.id = 'tabPreferencesOrder';
     tabOrderPanel.style.marginLeft = '30px';
@@ -128,7 +140,19 @@
     tabOrderPanel.style.display = (localStorage.tabprefs_preserveOrder ? 'block' : 'none');
     formGroup.appendChild(tabOrderPanel);
     
-    var section = prefsTab.querySelector('.side-panel-section');
+    section.querySelector('.form-group').appendChild(createOption('hidePermissions', I18n.t('tabpreferences.prefs.hide_permissions'), localStorage.tabprefs_hidePermissions, function() {
+      if (this.checked) {
+        permissions.style.display = 'none';
+        localStorage.tabprefs_hidePermissions = true;
+      } else {
+        permissions.style.display = 'block';
+        localStorage.removeItem('tabprefs_hidePermissions');
+      }
+    }));
+    if (localStorage.tabprefs_hidePermissions) {
+      permissions.style.display = 'none';
+    }
+    
     section.appendChild(heading);
     section.appendChild(formGroup);
 
@@ -183,13 +207,19 @@
   }
   
   // If necessary, start reordering the tags as they were saved
-  function reorderTabs() {
+  function reorderTabs(force) {
+    if (force) {
+      tabsSecured = -1;
+    }
     // Protection against possible infinite loop if certain scripts don't follow the standards
-    if (stack > 1000) {
-      log('Security limit reached!');
+    if (timesRan > 1000) {
       return;
     }
-    stack++;
+    if (timesRan === 1000) {
+      log('Sanity limit reached! Tab Preferences is most likely fighting with another script. Backing off now.');
+      // run one last time to increase counter
+    }
+    timesRan++;
     if (localStorage.tabprefs_preserveOrder) {
       var hashes = localStorage.tabprefs_preserveOrder.split(','),
           navTabs = document.querySelector('#user-tabs ul.nav-tabs'),
@@ -205,14 +235,21 @@
       refreshTabPanel();
       // Then we put them in the order we have stored
       var tabsMissing = 0;
-      for (var i = 0; i < hashes.length; i++) {
+      for (var i = tabsSecured+1; i < hashes.length; i++) {
         var tabAnchor = navTabs.querySelector('a[href$="'+hashes[i]+'"]');
         if (!tabAnchor) {
           tabsMissing++;
           continue;
         }
-        if (tabAnchor && Array.prototype.indexOf.call(navTabs.children, tabAnchor.parentNode) !== hashes.indexOf(tabAnchor.hash) - tabsMissing && i < navTabs.children.length) {
+        var tabIndex = Array.prototype.indexOf.call(navTabs.children, tabAnchor.parentNode);
+        if (tabIndex === i && tabsSecured === tabIndex-1) {
+          tabsSecured++;
+        }
+        if (tabAnchor && tabIndex !== i - tabsMissing && i < navTabs.children.length) {
           navTabs.insertBefore(tabAnchor.parentNode, navTabs.children[i - tabsMissing]);
+          if (tabsSecured === i-1) {
+            tabsSecured++;
+          }
         }
       }
     }
@@ -269,7 +306,7 @@
           // adjust localStorage, then reorder and refresh
           obj.splice(index+1, 0, obj.splice(index, 1)[0]);
           localStorage.tabprefs_preserveOrder = obj.join();
-          reorderTabs();
+          reorderTabs(true);
           refreshTabPanel();
         });
       }
@@ -284,7 +321,7 @@
           // adjust localStorage, then reorder and refresh
           obj.splice(index-1, 0, obj.splice(index, 1)[0]);
           localStorage.tabprefs_preserveOrder = obj.join();
-          reorderTabs();
+          reorderTabs(true);
           refreshTabPanel();
         });
       }
@@ -295,6 +332,31 @@
       item.appendChild(buttons);
       tabPanel.appendChild(item);
     });
+  }
+  
+  function checkVersion() {
+    var version = localStorage.tabprefs_version,
+        scriptVersion = GM_info.script.version;
+    if (!version) {
+      showMessage(I18n.t('tabpreferences.update.first_run'));
+      localStorage.tabprefs_version = scriptVersion;
+    } else if (version !== scriptVersion) {
+      if (versions.indexOf(version) === -1) {
+        // Weird stuff happening, just reset
+        localStorage.tabprefs_version = scriptVersion;
+        return;
+      }
+      var message = 'New version installed! Changelog:';
+      for (var i = versions.indexOf(version)+1; i < versions.length; i++) {
+        message += '\nv' + versions[i] + ': ' + I18n.t('tabpreferences.update.v' + versions[i].replace(/\./g, '_'));
+      }
+      showMessage(message);
+      localStorage.tabprefs_version = scriptVersion;
+    }
+  }
+  
+  function showMessage(message) {
+    alert('Tab Preferences\n=============\n' + message);
   }
   
   function log(message) {
