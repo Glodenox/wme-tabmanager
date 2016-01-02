@@ -5,10 +5,12 @@ This userscript augments the [Waze Map Editor](https://www.waze.com/editor/) by 
 ### Current features
 
 - Reopen the tab you had open the last time you used the WME
+- Replace the tab title with an icon of your choosing
+- Hide tabs that you don't need
+- Adjust the width and height of the tabs
 - Preserve the order of the tabs over sessions
 - Reorder the tabs in any way you like
 - Make the width of the sidepanel constant by adding the scrollbar by default
-- Make it possible to hide the paragraph that details how far you can edit and save valuable screen estate
 
 ## Installation instructions
 
