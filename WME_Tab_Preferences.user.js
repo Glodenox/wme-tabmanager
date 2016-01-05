@@ -7,7 +7,7 @@
 // @include     https://editor-beta.waze.com/*
 // @exclude     https://www.waze.com/user/*editor/*
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
-// @version     1.0.3
+// @version     1.0.4
 // @grant       none
 // ==/UserScript==
 "use strict";
@@ -15,7 +15,7 @@
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4'],
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
             tabConfigs = (localStorage.tabprefs_configs ? JSON.parse(localStorage.tabprefs_configs) : {});
@@ -81,7 +81,8 @@
           v1_0: '- Ability to hide a tab added\n- Ability to replace tab with symbol added\n- Ability to resize tabs added\n- Metadata icon added to userscript',
           v1_0_1: '- Fixed the script for Google Chrome',
           v1_0_2: '- Fixed tab size reset buttons in Google Chrome',
-          v1_0_3: '- Tab styling is applied with higher specificity, but plays nicer with other scripts as well'
+          v1_0_3: '- Tab styling is applied with higher specificity, but plays nicer with other scripts as well',
+          v1_0_4: '- Tab alignment issues with renamed tabs in Google Chrome fixed'
         }
       },
       nl: {
@@ -365,9 +366,14 @@
         }
         if (config.icon) {
           var span = document.createElement('span');
-          span.style.fontFamily = config.icon.fontFamily;
+          switch (config.icon.fontFamily) {
+            case 'FontAwesome':
+              span.className = 'fa icon-';
+              break;
+            default:
+              log('Unsupported fontFamily found: ' + config.icon.fontFamily);
+          }
           span.appendChild(document.createTextNode(String.fromCharCode(config.icon.charCode)));
-          span.style.fontWeight = 'normal';
           while (anchor.firstChild) {
             anchor.removeChild(anchor.firstChild);
           }
@@ -497,7 +503,7 @@
         }
         if (anchor.originalChildren) {
           var arrow = document.createElement('span');
-          arrow.style.fontFamily = 'FontAwesome';
+          arrow.className = 'fa icon-';
           arrow.style.color = '#888';
           arrow.style.margin = '0 6px';
           arrow.appendChild(document.createTextNode(String.fromCharCode(61537)));
@@ -574,7 +580,7 @@
         // FontAwesome: symbols start at 'F000' (= 61440) and end at 'F295' in version 4.5 of FontAwesome (Waze uses 4.4)
         for (let i = 61440; i <= 62101; i++) {
           var icon = document.createElement('span');
-          icon.style.fontFamily = 'FontAwesome';
+          icon.className = 'fa icon-';
           icon.appendChild(document.createTextNode(String.fromCharCode(i)));
           icon.style.cursor = 'pointer';
           icon.addEventListener('click', function() {
