@@ -36,7 +36,6 @@ GreaseMonkey and TamperMonkey will occasionally check for new versions of these 
 The script adds additional options to the preferences tab. These options allow you to enable or disable the script's features:
 
 - 'Tab width & Tab height': adjust the width and height of all tabs so they take up less/more space than before.
-- 'Hide editing permissions paragraph': remove the paragraph saying how far you can edit as this isn't really useful information for an advanced editor.
 - 'Preserve opened tab over sessions': have the script reopen the tab you had selected during the last time you used the WME.
 - 'Preserve tab order over sessions': have the script rearrange the tabs to preserve the previous order when loading the WME. New tabs are added to the back. When selecting this option, an additional menu appears that allows you to manage the tabs further in detail.
 
