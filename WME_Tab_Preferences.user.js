@@ -7,15 +7,14 @@
 // @include     https://editor-beta.waze.com/*
 // @exclude     https://www.waze.com/user/*editor/*
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
-// @version     1.0.4
+// @version     1.0.5
 // @grant       none
 // ==/UserScript==
-"use strict";
 (function() {
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5'],
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
             tabConfigs = (localStorage.tabprefs_configs ? JSON.parse(localStorage.tabprefs_configs) : {});
@@ -47,10 +46,23 @@
         };
       })();
 
-  function init() {
+  function init(e) {
+    if (e && e.user == null) {
+      return;
+    }
     if (typeof I18n === 'undefined') {
       log('No internationalisation object found yet, snoozing');
       setTimeout(init, 300);
+      return;
+    }
+    if (typeof Waze === 'undefined' ||
+        typeof Waze.loginManager === 'undefined') {
+      setTimeout(init, 100);
+      return;
+    }
+    if (!Waze.loginManager.hasUser()) {
+      Waze.loginManager.events.register("login", null, init);
+      Waze.loginManager.events.register("loginStatus", null, init);
       return;
     }
 
@@ -82,7 +94,8 @@
           v1_0_1: '- Fixed the script for Google Chrome',
           v1_0_2: '- Fixed tab size reset buttons in Google Chrome',
           v1_0_3: '- Tab styling is applied with higher specificity, but plays nicer with other scripts as well',
-          v1_0_4: '- Tab alignment issues with renamed tabs in Google Chrome fixed'
+          v1_0_4: '- Tab alignment issues with renamed tabs in Google Chrome fixed',
+          v1_0_5: '- Removed strict mode that was necessary for Google Chrome\n- Improved initalisation of script'
         }
       },
       nl: {
@@ -578,15 +591,16 @@
         icons.style.fontSize = '12px';
         icons.style.wordWrap = 'break-word';
         // FontAwesome: symbols start at 'F000' (= 61440) and end at 'F295' in version 4.5 of FontAwesome (Waze uses 4.4)
-        for (let i = 61440; i <= 62101; i++) {
+        for (var i = 61440; i <= 62101; i++) {
           var icon = document.createElement('span');
           icon.className = 'fa icon-';
           icon.appendChild(document.createTextNode(String.fromCharCode(i)));
           icon.style.cursor = 'pointer';
+          icon.dataset.charCode = i;
           icon.addEventListener('click', function() {
             tabConfig.icon = {
               fontFamily: 'FontAwesome',
-              charCode: i
+              charCode: this.dataset.charCode
             };
             Storage.setTabConfig(hash, tabConfig);
             container.removeChild(details);
