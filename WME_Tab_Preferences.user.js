@@ -142,6 +142,9 @@
     });
     for (var i = 0; i < tabs.children.length; i++) {
       selectionObserver.observe(tabs.children[i], { attributes: true, attributeFilter: ['class'] });
+      if (tabs.children[i].title) {
+        $(tabs.children[i]).tooltip();
+      }
       if (!Storage.isTabVisible(tabs.children[i].querySelector('a').hash)) {
         tabs.children[i].style.display = 'none';
       }
@@ -156,9 +159,14 @@
         if (mutationRecord.addedNodes.length > 0) {
           for (var i = 0; i < mutationRecord.addedNodes.length; i++) {
             var node = mutationRecord.addedNodes[i],
-                hash = node.querySelector('a').hash;
+                anchor = node.querySelector('a'),
+                hash = anchor.hash;
             // Also start observing here for changes to tab selection
             selectionObserver.observe(node, { attributes: true, attributeFilter: ['class'] });
+            console.log('initTabListener', hash, node);
+            if (anchor.title) {
+              $(anchor).tooltip();
+            }
             // Tab visibility
             if (!Storage.isTabVisible(hash)) {
               node.style.display = 'none';
@@ -223,6 +231,17 @@
     tabOrderPanel.id = 'tabPreferencesOrder';
     tabOrderPanel.style.display = (localStorage.tabprefs_preserveOrder ? '' : 'none');
     formGroup.appendChild(tabOrderPanel);
+    $(tabOrderPanel).sortable({
+      forcePlaceholderSize: true,
+      placeholderClass: 'result',
+      handle: '.handle'
+    }).bind('sortupdate', function(e, ui) {
+      var order = localStorage.tabprefs_preserveOrder.split(',');
+      order.splice(ui.elementIndex, 0, order.splice(ui.oldElementIndex, 1)[0]);
+      localStorage.tabprefs_preserveOrder = order.join();
+      reorderTabs(true);
+      refreshTabPanel();
+    });
 
     // Obsolete option, remove from localStorage
     if (localStorage.tabprefs_hidePermissions) {
@@ -381,12 +400,18 @@
           var span = document.createElement('span');
           switch (config.icon.fontFamily) {
             case 'FontAwesome':
-              span.className = 'fa icon-';
+              span.className = 'fa';
               break;
             default:
               log('Unsupported fontFamily found: ' + config.icon.fontFamily);
           }
           span.appendChild(document.createTextNode(String.fromCharCode(config.icon.charCode)));
+          console.log('renameTabs', anchor.title, anchor.hash);
+          if (!anchor.title) {
+            anchor.title = anchor.textContent.trim();
+          }
+          console.log('renameTabs #2', anchor.title, anchor.hash);
+          $(anchor).tooltip();
           while (anchor.firstChild) {
             anchor.removeChild(anchor.firstChild);
           }
@@ -508,6 +533,8 @@
       buttons.style.float = 'right';
       item.className = 'result';
       item.appendChild(buttons);
+      name.className = 'handle';
+      name.style.cursor = 'default';
       // Add name and replacement
       if (anchor) {
         var title = anchor.title;
@@ -541,9 +568,18 @@
         name.style.fontStyle = 'italic';
         name.appendChild(document.createTextNode(hash));
       }
+      var handle = document.createElement('span');
+      handle.style.fontFamily = 'FontAwesome';
+      handle.style.letterSpacing = '1px';
+      handle.style.color = '#c2c2c2';
+      handle.style.cursor = 'move';
+      handle.style.fontSize = '11px';
+      handle.appendChild(document.createTextNode('?? '));
+      name.insertBefore(handle, name.firstChild);
       item.appendChild(name);
       tabPanel.appendChild(item);
     });
+    $(tabPanel).sortable();
   }
 
   function checkVersion() {
