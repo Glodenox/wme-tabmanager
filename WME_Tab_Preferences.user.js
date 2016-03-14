@@ -7,14 +7,14 @@
 // @include     https://editor-beta.waze.com/*
 // @exclude     https://www.waze.com/user/*editor/*
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
-// @version     1.0.5
+// @version     1.1
 // @grant       none
 // ==/UserScript==
 (function() {
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1'],
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
             tabConfigs = (localStorage.tabprefs_configs ? JSON.parse(localStorage.tabprefs_configs) : {});
@@ -42,6 +42,25 @@
           },
           getTabConfig: function(hash) {
             return tabConfigs[hash] || {};
+          },
+          exportConfig: function() {
+            return JSON.stringify({
+              reopenTab: localStorage.tabprefs_reopenTab,
+              tabprefs_tabwidth: localStorage.tabprefs_tabwidth,
+              tabprefs_tabheight: localStorage.tabprefs_tabheight,
+              tabprefs_preserveOrder: localStorage.tabprefs_preserveOrder,
+              tabprefs_hidden: localStorage.tabprefs_hidden,
+              tabprefs_configs: localStorage.tabprefs_configs
+            });
+          },
+          importConfig: function(toImport) {
+            var config = JSON.parse(toImport);
+            var iterator = config.entries();
+            for (var entry of iterator) {
+              if (entry[0].startsWith('tabprefs_')) {
+                localStorage[entry[0]] = entry[1];
+              }
+            }
           }
         };
       })();
@@ -75,9 +94,11 @@
           reset: 'reset',
           preserve_tab: 'Preserve opened tab over sessions',
           preserve_order: 'Preserve tab order and change names',
-          remove_tab: 'Tab no longer found. Remove entry?',
+          remove_tab: 'Tab no longer available. Remove entry?',
           hide_tab: 'Change tab visibility',
-          edit_tab_name: 'Replace tab name',
+          move_up_tab: 'Move up',
+          move_down_tab: 'Move down',
+          edit_tab: 'Edit tab',
           change_icon: 'Change icon',
           set_icon: 'Set icon',
           reset_tab: 'Reset tab',
@@ -95,15 +116,29 @@
           v1_0_2: '- Fixed tab size reset buttons in Google Chrome',
           v1_0_3: '- Tab styling is applied with higher specificity, but plays nicer with other scripts as well',
           v1_0_4: '- Tab alignment issues with renamed tabs in Google Chrome fixed',
-          v1_0_5: '- Removed strict mode that was necessary for Google Chrome\n- Improved initalisation of script'
+          v1_0_5: '- Removed strict mode that was necessary for Google Chrome\n- Improved initalisation of script',
+          v1_1: '- The list with tab names can now be dragged around\n- Quick tooltips for tabs with replaced names\n- Bug fix concerning the order of the last tabs with some missing tabs'
         }
       },
       nl: {
         prefs: {
           title: 'Tabvoorkeuren',
+          tab_width: 'Tabbreedte',
+          tab_height: 'Tabhoogte',
+          reset: 'reset',
           preserve_tab: 'Geopende tab bijhouden tussen sessies',
           preserve_order: 'Volgorde van tabs bijhouden en namen veranderen',
-          remove_tab: 'Tab niet langer gevonden. Verwijderen?'
+          remove_tab: 'Tab niet langer beschikbaar. Verwijderen?',
+          hide_tab: 'Tabzichtbaarheid veranderen',
+          move_up_tab: 'Eerder zetten',
+          move_down_tab: 'Verder zetten',
+          edit_tab: 'Tab aanpassen',
+          change_icon: 'Icoon veranderen',
+          set_icon: 'Icoon instellen',
+          reset_tab: 'Tab resetten',
+          icon: 'Icoon',
+          icon_none: 'Niet ingesteld',
+          close: 'Sluiten'
         }
       }
     };
@@ -163,7 +198,6 @@
                 hash = anchor.hash;
             // Also start observing here for changes to tab selection
             selectionObserver.observe(node, { attributes: true, attributeFilter: ['class'] });
-            console.log('initTabListener', hash, node);
             if (anchor.title) {
               $(anchor).tooltip();
             }
@@ -233,8 +267,7 @@
     formGroup.appendChild(tabOrderPanel);
     $(tabOrderPanel).sortable({
       forcePlaceholderSize: true,
-      placeholderClass: 'result',
-      handle: '.handle'
+      placeholderClass: 'result'
     }).bind('sortupdate', function(e, ui) {
       var order = localStorage.tabprefs_preserveOrder.split(',');
       order.splice(ui.elementIndex, 0, order.splice(ui.oldElementIndex, 1)[0]);
@@ -314,8 +347,7 @@
     }
     var tab = document.querySelector('#user-tabs .nav-tabs li a[href$="'+localStorage.tabprefs_reopenTab+'"]');
     if (!tabReopened && tab) {
-      log("Tab to reopen found, reopening now");
-      var clickEvent = new MouseEvent("click", {
+      var clickEvent = new MouseEvent('click', {
         bubbles: true,
         cancelable: true,
         view: window
@@ -356,6 +388,7 @@
       var tabsMissing = 0;
       for (var i = tabsSecured+1; i < hashes.length; i++) {
         var tabAnchor = navTabs.querySelector('a[href$="'+hashes[i]+'"]');
+        
         if (!tabAnchor) {
           tabsMissing++;
           continue;
@@ -364,7 +397,7 @@
         if (tabIndex === i && tabsSecured === tabIndex-1) {
           tabsSecured++;
         }
-        if (tabAnchor && tabIndex !== i - tabsMissing && i < navTabs.children.length) {
+        if (tabAnchor && tabIndex !== i - tabsMissing && i - tabsMissing < navTabs.children.length) {
           navTabs.insertBefore(tabAnchor.parentNode, navTabs.children[i - tabsMissing]);
           if (tabsSecured === i-1) {
             tabsSecured++;
@@ -394,6 +427,11 @@
           for (var j = 0; j < anchor.childNodes.length; j++) { // Bleh, nodelist doesn't support for each
             children.push(anchor.childNodes[j]);
           }
+          anchor.originalTitle = anchor.title || anchor.dataset.originalTitle || anchor.parentNode.title || anchor.parentNode.dataset.originalTitle;
+          if (!anchor.title) {
+            anchor.title = anchor.textContent.trim();
+          }
+          $(anchor).tooltip();
           anchor.originalChildren = children;
         }
         if (config.icon) {
@@ -406,18 +444,13 @@
               log('Unsupported fontFamily found: ' + config.icon.fontFamily);
           }
           span.appendChild(document.createTextNode(String.fromCharCode(config.icon.charCode)));
-          console.log('renameTabs', anchor.title, anchor.hash);
-          if (!anchor.title) {
-            anchor.title = anchor.textContent.trim();
-          }
-          console.log('renameTabs #2', anchor.title, anchor.hash);
-          $(anchor).tooltip();
           while (anchor.firstChild) {
             anchor.removeChild(anchor.firstChild);
           }
           anchor.appendChild(span);
         }
       }
+      // Icon replacement has been removed
       if (!config.icon && anchor.originalChildren) {
         while (anchor.firstChild) {
           anchor.removeChild(anchor.firstChild);
@@ -426,6 +459,15 @@
           anchor.appendChild(node);
         });
         delete anchor.originalChildren;
+        if (anchor.originalTitle) {
+          anchor.title = anchor.originalTitle;
+          $(anchor).tooltip();
+        } else {
+          anchor.removeAttribute('title');
+          $(anchor).tooltip('destroy');
+          delete anchor.dataset.originalTitle;
+        }
+        delete anchor.originalTitle;
       }
     }
   }
@@ -445,11 +487,11 @@
       var item = document.createElement('li'),
           name = document.createElement('span'),
           buttons = document.createElement('div'),
-          moveUp = document.createElement('span'),
-          moveDown = document.createElement('span'),
-          remove = document.createElement('span'),
-          hide = document.createElement('span'),
-          edit = document.createElement('span'),
+          moveUp = createIconButton('?', I18n.t('tabpreferences.prefs.move_up_tab')),
+          moveDown = createIconButton('?', I18n.t('tabpreferences.prefs.move_down_tab')),
+          remove = createIconButton('?', I18n.t('tabpreferences.prefs.remove_tab')),
+          hide = createIconButton((Storage.isTabVisible(hash) ? eyeIcon : eyeSlashIcon), I18n.t('tabpreferences.prefs.hide_tab')),
+          edit = createIconButton('?', I18n.t('tabpreferences.prefs.edit_tab')),
           anchor = document.querySelector('#user-tabs .nav-tabs li a[href$="'+hash+'"]'),
           tabConfig = {};
       if (anchor) {
@@ -457,56 +499,48 @@
       }
       // Add action buttons
       if (!anchor) {
-        remove.className = 'icon-remove fa fa-remove';
-        remove.style.cursor = 'pointer';
-        remove.title = I18n.t('tabpreferences.prefs.remove_tab');
         remove.addEventListener('click', function() {
           obj.splice(index, 1);
           localStorage.tabprefs_preserveOrder = obj.join();
           refreshTabPanel();
         });
         buttons.appendChild(remove);
-      }
-      if (hash !== '#sidepanel-prefs') { // Prevent the preferences tab from being hidden and getting locked out
-        hide.className = 'icon- fa';
-        hide.innerHTML = (Storage.isTabVisible(hash) ? eyeSlashIcon : eyeIcon);
-        hide.style.cursor = 'pointer';
-        hide.style.marginLeft = '3px';
-        hide.title = I18n.t('tabpreferences.prefs.hide_tab');
-        hide.addEventListener('click', function() {
-          if (this.innerHTML === eyeSlashIcon) {
-            this.innerHTML = eyeIcon;
-            anchor.parentNode.style.display = 'none';
-            Storage.setTabVisibility(hash, false);
-          } else {
-            this.innerHTML = eyeSlashIcon;
-            anchor.parentNode.style.display = 'block';
-            Storage.setTabVisibility(hash, true);
-          }
-          refreshTabPanel();
-        });
-        buttons.appendChild(hide);
-      }
-      edit.className = 'icon-pencil fa fa-pencil';
-      edit.style.cursor = 'pointer';
-      edit.style.marginLeft = '3px';
-      edit.title = I18n.t('tabpreferences.prefs.edit_tab_name');
-      edit.addEventListener('click', function() {
-        if (!item.details) {
-          createTabConfigPane(item, hash);
-        } else {
-          item.removeChild(item.details);
-          item.details = false;
+      } else {
+        if (hash !== '#sidepanel-prefs') { // Prevent the preferences tab from being hidden and getting locked out
+          hide.addEventListener('click', function() {
+            if (Storage.isTabVisible(hash)) {
+              this.innerHTML = eyeSlashIcon;
+              anchor.parentNode.style.display = 'none';
+              Storage.setTabVisibility(hash, false);
+            } else {
+              this.innerHTML = eyeIcon;
+              anchor.parentNode.style.display = 'block';
+              Storage.setTabVisibility(hash, true);
+            }
+            refreshTabPanel();
+          });
+          hide.addEventListener('mouseenter', function() {
+            this.innerHTML = (Storage.isTabVisible(hash) ? eyeSlashIcon : eyeIcon);
+          });
+          hide.addEventListener('mouseleave', function() {
+            this.innerHTML = (Storage.isTabVisible(hash) ? eyeIcon : eyeSlashIcon);
+          });
+          buttons.appendChild(hide);
         }
-      });
-      buttons.appendChild(edit);
-      moveDown.className = 'icon-chevron-down fa fa-chevron-down';
-      moveDown.style.marginLeft = '3px';
+        edit.addEventListener('click', function() {
+          if (!item.details) {
+            createTabConfigPane(item, hash);
+          } else {
+            item.removeChild(item.details);
+            item.details = false;
+          }
+        });
+        buttons.appendChild(edit);
+      }
       if (index === order.length - 1) {
         moveDown.style.cursor = 'default';
         moveDown.style.color = '#aaa';
       } else {
-        moveDown.style.cursor = 'pointer';
         moveDown.addEventListener('click', function() {
           obj.splice(index+1, 0, obj.splice(index, 1)[0]);
           localStorage.tabprefs_preserveOrder = obj.join();
@@ -515,13 +549,10 @@
         });
       }
       buttons.appendChild(moveDown);
-      moveUp.className = 'icon-chevron-up fa fa-chevron-up';
-      moveUp.style.marginLeft = '3px';
       if (index === 0) {
         moveUp.style.color = '#aaa';
         moveUp.style.cursor = 'default';
       } else {
-        moveUp.style.cursor = 'pointer';
         moveUp.addEventListener('click', function() {
           obj.splice(index-1, 0, obj.splice(index, 1)[0]);
           localStorage.tabprefs_preserveOrder = obj.join();
@@ -533,32 +564,40 @@
       buttons.style.float = 'right';
       item.className = 'result';
       item.appendChild(buttons);
-      name.className = 'handle';
+      var handle = document.createElement('span');
+      handle.style.fontFamily = 'FontAwesome';
+      handle.style.letterSpacing = '1px';
+      handle.style.color = '#c2c2c2';
+      handle.style.cursor = 'move';
+      handle.style.fontSize = '11px';
+      handle.appendChild(document.createTextNode('?? '));
+      item.appendChild(handle);
       name.style.cursor = 'default';
       // Add name and replacement
       if (anchor) {
-        var title = anchor.title;
-        if (!title) {
-          title = anchor.parentNode.title;
-        }
         if (anchor.originalChildren) {
+          var title = anchor.originalTitle;
           var arrow = document.createElement('span');
-          arrow.className = 'fa icon-';
+          arrow.style.fontFamily = 'FontAwesome';
           arrow.style.color = '#888';
           arrow.style.margin = '0 6px';
           arrow.appendChild(document.createTextNode(String.fromCharCode(61537)));
           anchor.originalChildren.forEach(function(node) {
             name.appendChild(node.cloneNode(true));
           });
+          if (title) {
+            name.appendChild(document.createTextNode(' (' + title + ')'));
+          }
           name.appendChild(arrow);
           for (var i = 0; i < anchor.childNodes.length; i++) {
             name.appendChild(anchor.childNodes[i].cloneNode(true));
           }
         } else {
           name.innerHTML = anchor.innerHTML;
-        }
-        if (title) {
-          name.appendChild(document.createTextNode(' (' + title + ')'));
+          var title = anchor.title || anchor.dataset.originalTitle || anchor.parentNode.title || anchor.parentNode.dataset.originalTitle;
+          if (title) {
+            name.appendChild(document.createTextNode(' (' + title + ')'));
+          }
         }
         if (!Storage.isTabVisible(hash)) {
           name.style.color = '#888';
@@ -568,18 +607,27 @@
         name.style.fontStyle = 'italic';
         name.appendChild(document.createTextNode(hash));
       }
-      var handle = document.createElement('span');
-      handle.style.fontFamily = 'FontAwesome';
-      handle.style.letterSpacing = '1px';
-      handle.style.color = '#c2c2c2';
-      handle.style.cursor = 'move';
-      handle.style.fontSize = '11px';
-      handle.appendChild(document.createTextNode('?? '));
-      name.insertBefore(handle, name.firstChild);
       item.appendChild(name);
       tabPanel.appendChild(item);
     });
     $(tabPanel).sortable();
+  }
+  
+  function createIconButton(icon, title) {
+    var button = document.createElement('button');
+    button.style.fontFamily = 'FontAwesome';
+    button.style.border = 'none';
+    button.style.background = 'none';
+    button.style.padding = '0 2px';
+    button.style.cursor = 'pointer';
+    button.style.height = 'auto';
+    button.style.outline = 'none';
+    button.appendChild(document.createTextNode(icon));
+    if (title) {
+      button.title = title;
+      $(button).tooltip();
+    }
+    return button;
   }
 
   function checkVersion() {
@@ -629,7 +677,7 @@
         // FontAwesome: symbols start at 'F000' (= 61440) and end at 'F295' in version 4.5 of FontAwesome (Waze uses 4.4)
         for (var i = 61440; i <= 62101; i++) {
           var icon = document.createElement('span');
-          icon.className = 'fa icon-';
+          icon.style.fontFamily = 'FontAwesome';
           icon.appendChild(document.createTextNode(String.fromCharCode(i)));
           icon.style.cursor = 'pointer';
           icon.dataset.charCode = i;
