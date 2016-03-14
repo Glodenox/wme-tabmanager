@@ -1,4 +1,4 @@
-// ==UserScript==
+﻿// ==UserScript==
 // @name        WME Tab Preferences
 // @namespace   http://www.tomputtemans.com/
 // @description Adjust the tabs in the Waze Map Editor to your liking by adjusting their size, hiding tabs or even renaming tabs completely.
@@ -487,11 +487,11 @@
       var item = document.createElement('li'),
           name = document.createElement('span'),
           buttons = document.createElement('div'),
-          moveUp = createIconButton('?', I18n.t('tabpreferences.prefs.move_up_tab')),
-          moveDown = createIconButton('?', I18n.t('tabpreferences.prefs.move_down_tab')),
-          remove = createIconButton('?', I18n.t('tabpreferences.prefs.remove_tab')),
+          moveUp = createIconButton('', I18n.t('tabpreferences.prefs.move_up_tab')),
+          moveDown = createIconButton('', I18n.t('tabpreferences.prefs.move_down_tab')),
+          remove = createIconButton('', I18n.t('tabpreferences.prefs.remove_tab')),
           hide = createIconButton((Storage.isTabVisible(hash) ? eyeIcon : eyeSlashIcon), I18n.t('tabpreferences.prefs.hide_tab')),
-          edit = createIconButton('?', I18n.t('tabpreferences.prefs.edit_tab')),
+          edit = createIconButton('', I18n.t('tabpreferences.prefs.edit_tab')),
           anchor = document.querySelector('#user-tabs .nav-tabs li a[href$="'+hash+'"]'),
           tabConfig = {};
       if (anchor) {
@@ -570,7 +570,7 @@
       handle.style.color = '#c2c2c2';
       handle.style.cursor = 'move';
       handle.style.fontSize = '11px';
-      handle.appendChild(document.createTextNode('?? '));
+      handle.appendChild(document.createTextNode(' '));
       item.appendChild(handle);
       name.style.cursor = 'default';
       // Add name and replacement
