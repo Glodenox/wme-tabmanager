@@ -232,9 +232,14 @@
       return;
     }
     var section = prefsTab.querySelector('.side-panel-section'),
+        version = document.createElement('a'),
         heading = document.createElement('h4'),
         tabOrderPanel = document.createElement('ul'),
         formGroup = document.createElement('div');
+    version.href = 'https://www.waze.com/forum/viewtopic.php?f=819&t=168863';
+    version.target = '_blank';
+    version.style.float = 'right';
+    version.appendChild(document.createTextNode('v' + GM_info.script.version));
     heading.appendChild(document.createTextNode(I18n.t('tabpreferences.prefs.title')));
     formGroup.className = 'form-group';
     formGroup.style.marginBottom = '15px';
@@ -282,6 +287,7 @@
       localStorage.removeItem('tabprefs_hidePermissions');
     }
 
+    section.appendChild(version);
     section.appendChild(heading);
     section.appendChild(formGroup);
 
@@ -746,6 +752,5 @@
     }
   }
 
-  log('version - ' + GM_info.script.version);
   init();
 })();
