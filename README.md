@@ -1,5 +1,7 @@
 # WME Tab Preferences
 
+![Tab Preferences tooltip example](https://tomputtemans.com/waze-scripts/images/WME-TabPreferences-tooltip.png)
+
 This userscript augments the [Waze Map Editor](https://www.waze.com/editor/) by providing additional settings concerning the tabs. This script preserves the order of the tabs and reopens the tab you had open the last time you used the WME.
 
 ### Current features
