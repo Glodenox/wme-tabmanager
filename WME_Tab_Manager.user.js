@@ -1,5 +1,5 @@
 ﻿// ==UserScript==
-// @name        WME Tab Preferences
+// @name        WME Tab Manager
 // @namespace   http://www.tomputtemans.com/
 // @description Adjust the tabs in the Waze Map Editor to your liking by adjusting their size, hiding tabs or even renaming tabs completely.
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/.*$/
@@ -87,7 +87,7 @@
     setTranslations({
       en: {
         prefs: {
-          title: 'Tab Preferences',
+          title: 'Tab Manager',
           tab_width: 'Tab width',
           tab_height: 'Tab height',
           reset: 'reset',
@@ -106,7 +106,7 @@
           close: 'Close'
         },
         update: {
-          first_run: 'Thanks for using Tab Preferences!\nThe settings tab on the left contains additional options now.\nThis message will only appear one time.',
+          first_run: 'Thanks for using Tab Manager!\nThe settings tab on the left contains additional options now.\nThis message will only appear one time.',
           message: 'New version installed! Changelog:',
           v0_1: '- Initial version with tab memory and order preservation',
           v0_2: '- Improvements to order preservation algorithm\n- Addition of version change messages',
@@ -123,7 +123,7 @@
       },
       nl: {
         prefs: {
-          title: 'Tabvoorkeuren',
+          title: 'Tab manager',
           tab_width: 'Tabbreedte',
           tab_height: 'Tabhoogte',
           reset: 'reset',
@@ -391,7 +391,7 @@
       return;
     }
     if (timesRan === 1000) {
-      log('Sanity limit reached! Tab Preferences is most likely conflicting with another script. Backing off from now on.');
+      log('Sanity limit reached! Tab Manager is most likely conflicting with another script. Backing off from now on.');
       // run one last time to increase counter
     }
     timesRan++;
@@ -760,12 +760,12 @@
   }
 
   function showMessage(message) {
-    alert('Tab Preferences\n=============\n' + message);
+    alert('Tab Manager\n=============\n' + message);
   }
 
   function log(message) {
     if (console.log) {
-      console.log('%cWME Tab Preferences: %c' + message, 'color:black', 'color:#d97e00');
+      console.log('%cWME Tab Manager: %c' + message, 'color:black', 'color:#d97e00');
     }
   }
 
