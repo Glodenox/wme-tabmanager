@@ -4,14 +4,14 @@
 // @description Adjust the tabs in the Waze Map Editor to your liking by adjusting their size, hiding tabs or even renaming tabs completely.
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/.*$/
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
-// @version     1.1.2
+// @version     1.2
 // @grant       none
 // ==/UserScript==
 (function() {
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2'],
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
             tabConfigs = (localStorage.tabprefs_configs ? JSON.parse(localStorage.tabprefs_configs) : {});
@@ -118,7 +118,8 @@
           v1_0_5: '- Removed strict mode that was necessary for Google Chrome\n- Improved initalisation of script',
           v1_1: '- The list with tab names can now be dragged around\n- Quick tooltips for tabs with replaced names\n- Bug fix concerning the order of the last tabs with some missing tabs',
           v1_1_1: '- Problems with UTF8 in text editor resulted in missing icons',
-          v1_1_2: '- Removed fixed scrollbar\n- Fixed a very rare potential bootstrap issue'
+          v1_1_2: '- Removed fixed scrollbar\n- Fixed a very rare potential bootstrap issue',
+          v1_2: '- Renamed to Tab Manager\n- Translation fixes'
         }
       },
       nl: {
@@ -145,10 +146,9 @@
     });
 
     checkVersion();
-
     initTabListener();
     initSettings();
-    
+
     setModeChangeListener();
   }
   
