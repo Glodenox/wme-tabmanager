@@ -2,10 +2,7 @@
 // @name        WME Tab Preferences
 // @namespace   http://www.tomputtemans.com/
 // @description Adjust the tabs in the Waze Map Editor to your liking by adjusting their size, hiding tabs or even renaming tabs completely.
-// @include     https://www.waze.com/*/editor/*
-// @include     https://www.waze.com/editor/*
-// @include     https://editor-beta.waze.com/*
-// @exclude     https://www.waze.com/user/*editor/*
+// @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor\/.*$/
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
 // @version     1.1.2
 // @grant       none
@@ -83,11 +80,11 @@
       Waze.loginManager.events.register("login", null, init);
       Waze.loginManager.events.register("loginStatus", null, init);
       if (!Waze.loginManager.hasUser()) {
-      return;
-    }
+        return;
+      }
     }
 
-    var om_strings = {
+    setTranslations({
       en: {
         prefs: {
           title: 'Tab Preferences',
@@ -145,19 +142,40 @@
           close: 'Sluiten'
         }
       }
-    };
-    om_strings['en_GB'] = om_strings.en;
-    for(var i = 0; i < I18n.availableLocales.length; i++) {
-      var locale = I18n.availableLocales[i];
-      if (I18n.translations[locale]) {
-        I18n.translations[locale].tabpreferences = om_strings[locale];
-      }
-    }
+    });
 
     checkVersion();
 
     initTabListener();
     initSettings();
+    
+    setModeChangeListener();
+  }
+  
+  function setTranslations(translations) {
+    for (var i = 0; i < Object.keys(translations).length; i++) {
+      var locale = Object.keys(translations)[i];
+      if (I18n.currentLocale() == locale) {
+        I18n.translations[locale].tabpreferences = translations[locale];
+        return;
+      }
+    }
+    I18n.translations[I18n.currentLocale()].tabpreferences = translations.en;
+  }
+  
+  function setModeChangeListener() {
+    if (Waze.app.modeController) {
+      Waze.app.modeController.model.bind('change:mode', function(model, modeId) {
+        if (modeId == 0) {
+          tabReopened = false;
+          tabsSecured = -1;
+          initTabListener();
+          initSettings();
+        }
+      });
+    } else {
+      setTimeout(handleModeChange, 400);
+    }
   }
 
   function initTabListener() {
@@ -331,8 +349,7 @@
     label.appendChild(document.createTextNode(description));
     label.style.marginRight = '4px';
     var reset = document.createElement('button');
-    reset.className = 'btn-link';
-    reset.style.paddingRight = '0';
+    reset.className = 'btn-link pull-right';
     reset.addEventListener('click', function() {
       input.value = defaultValue;
       localStorage.removeItem(storageKey);
@@ -341,9 +358,9 @@
     reset.appendChild(document.createTextNode(I18n.t('tabpreferences.prefs.reset')));
     var container = document.createElement('div');
     container.className = 'controls-container';
+    container.appendChild(reset);
     container.appendChild(label);
     container.appendChild(input);
-    container.appendChild(reset);
     return container;
   }
 
@@ -681,10 +698,10 @@
         icons.style.letterSpacing = '5px';
         icons.style.fontSize = '12px';
         icons.style.wordWrap = 'break-word';
-        // FontAwesome: symbols start at 'F000' (= 61440) and end at 'F295' in version 4.5 of FontAwesome (Waze uses 4.4)
-        for (var i = 61440; i <= 62101; i++) {
+        icons.style.fontFamily = 'FontAwesome';
+        // FontAwesome: symbols start at 'F000' (= 61440) and end at 'F2E0' in version 4.7 of FontAwesome (Waze uses 4.7)
+        for (var i = 61440; i <= 62177; i++) {
           var icon = document.createElement('span');
-          icon.style.fontFamily = 'FontAwesome';
           icon.appendChild(document.createTextNode(String.fromCharCode(i)));
           icon.style.cursor = 'pointer';
           icon.dataset.charCode = i;
