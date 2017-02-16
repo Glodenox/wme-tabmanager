@@ -12,7 +12,7 @@
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2', '1.2.1'],
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
             tabConfigs = (localStorage.tabprefs_configs ? JSON.parse(localStorage.tabprefs_configs) : {});
@@ -120,7 +120,8 @@
           v1_1: '- The list with tab names can now be dragged around\n- Quick tooltips for tabs with replaced names\n- Bug fix concerning the order of the last tabs with some missing tabs',
           v1_1_1: '- Problems with UTF8 in text editor resulted in missing icons',
           v1_1_2: '- Removed fixed scrollbar\n- Fixed a very rare potential bootstrap issue',
-          v1_2: '- Renamed to Tab Manager\n- Translation fixes'
+          v1_2: '- Renamed to Tab Manager\n- Translation fixes',
+          v1_2_1: '- Added library to allow for sorting on WME beta'
         }
       },
       nl: {
