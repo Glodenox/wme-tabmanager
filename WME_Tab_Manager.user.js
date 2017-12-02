@@ -156,7 +156,7 @@
 
     setModeChangeListener();
   }
-  
+
   function setTranslations(translations) {
     I18n.translations[I18n.currentLocale()].tabpreferences = translations.en;
     for (var i = 0; i < Object.keys(translations).length; i++) {
@@ -167,7 +167,7 @@
       }
     }
   }
-  
+
   function setModeChangeListener() {
     if (Waze.app && Waze.app.modeController) {
       Waze.app.modeController.model.bind('change:mode', function(model, modeId) {
@@ -417,7 +417,7 @@
       var tabsMissing = 0;
       for (var i = tabsSecured+1; i < hashes.length; i++) {
         var tabAnchor = navTabs.querySelector('a[href$="'+hashes[i]+'"]');
-        
+
         if (!tabAnchor) {
           tabsMissing++;
           continue;
@@ -604,8 +604,9 @@
       name.style.cursor = 'default';
       // Add name and replacement
       if (anchor) {
+        var title;
         if (anchor.originalChildren) {
-          var title = anchor.originalTitle;
+          title = anchor.originalTitle;
           var arrow = document.createElement('span');
           arrow.style.fontFamily = 'FontAwesome';
           arrow.style.color = '#888';
@@ -623,7 +624,7 @@
           }
         } else {
           name.innerHTML = anchor.innerHTML;
-          var title = anchor.title || anchor.dataset.originalTitle || anchor.parentNode.title || anchor.parentNode.dataset.originalTitle;
+          title = anchor.title || anchor.dataset.originalTitle || anchor.parentNode.title || anchor.parentNode.dataset.originalTitle;
           if (title) {
             name.appendChild(document.createTextNode(' (' + title + ')'));
           }
@@ -641,7 +642,7 @@
     });
     sortable(tabPanel);
   }
-  
+
   function createIconButton(icon, title) {
     var button = document.createElement('button');
     button.style.fontFamily = 'FontAwesome';
