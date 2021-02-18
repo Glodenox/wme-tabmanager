@@ -4,7 +4,7 @@
 // @description Adjust the tabs in the Waze Map Editor to your liking by adjusting their size, hiding tabs or even renaming tabs completely.
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
-// @version     1.4.0
+// @version     1.4.1
 // @require     https://bowercdn.net/c/html.sortable-0.4.4/dist/html.sortable.js
 // @grant       none
 // ==/UserScript==
@@ -15,7 +15,7 @@
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.2.3', '1.2.4', '1.3', '1.3.1', '1.4.0'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.2.3', '1.2.4', '1.3', '1.3.1', '1.4.0', '1.4.1'],
       styleElement, // Style element to reuse whenever it gets removed by the WME (user login, for example)
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
@@ -132,7 +132,8 @@
           v1_2_4: '- Internal fix for beta (hasUser function was removed)',
           v1_3: '- Added export/import functionality\n- Make it possible to recolour tabs\n- Recover from imperial/metric unit switches',
           v1_3_1: '- Technical release to deal with an upcoming change',
-          v1_4_0: '- Filter icons by text\n- Fix script startup stability\n- Possibility to replace feed while retaining ability to refresh\n- Put all styling in CSS classes'
+          v1_4_0: '- Filter icons by text\n- Fix script startup stability\n- Possibility to replace feed while retaining ability to refresh\n- Put all styling in CSS classes',
+          v1_4_1: '- Fix for future WME version'
         }
       },
       nl: {
@@ -165,7 +166,6 @@
     initSettings();
     applyStyles();
 
-    setModeChangeListener();
     setUnitChangeListener();
   }
 
@@ -177,18 +177,6 @@
         I18n.translations[locale].tabpreferences.prefs = translations[locale].prefs;
         return;
       }
-    }
-  }
-
-  function setModeChangeListener() {
-    if (W.app && W.app.modeController) {
-      W.app.modeController.model.bind('change:mode', function(model, modeId) {
-        if (modeId == 0) {
-          reinitialize();
-        }
-      });
-    } else {
-      setTimeout(setModeChangeListener, 400);
     }
   }
 
