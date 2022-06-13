@@ -4,7 +4,7 @@
 // @description Adjust the tabs in the Waze Map Editor to your liking by adjusting their size, hiding tabs or even renaming tabs completely.
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
-// @version     1.4.1
+// @version     1.4.2
 // @require     https://bowercdn.net/c/html.sortable-0.4.4/dist/html.sortable.js
 // @grant       none
 // ==/UserScript==
@@ -15,7 +15,7 @@
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.2.3', '1.2.4', '1.3', '1.3.1', '1.4.0', '1.4.1'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.2.3', '1.2.4', '1.3', '1.3.1', '1.4.0', '1.4.1', '1.4.2'],
       styleElement, // Style element to reuse whenever it gets removed by the WME (user login, for example)
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
@@ -287,9 +287,10 @@
       localStorage.tabprefs_preserveOrder = hashes.join();
     }
 
-    var section = prefsTab.querySelector('.side-panel-section'),
+    var section = prefsTab.querySelector('.settings'),
         version = document.createElement('a'),
-        heading = document.createElement('h4'),
+        headingContainer = document.createElement('div'),
+        heading = document.createElement('wz-overline'),
         tabOrderPanel = document.createElement('ul'),
         configExportImport = document.createElement('div'),
         configExport = document.createElement('a'),
@@ -298,11 +299,13 @@
         formGroup = document.createElement('div');
     version.href = 'https://www.waze.com/forum/viewtopic.php?f=819&t=168863';
     version.target = '_blank';
-    version.style.float = 'right';
     version.appendChild(document.createTextNode('v' + GM_info.script.version));
-    heading.style.paddingTop = '10px';
-    heading.style.borderTop = '1px solid #e0e0e0';
     heading.appendChild(document.createTextNode(I18n.t('tabpreferences.prefs.title')));
+    headingContainer.style.borderTop = '1px solid #e0e0e0';
+    headingContainer.style.marginTop = '1em';
+    headingContainer.className = 'panel-header-component';
+    headingContainer.appendChild(heading);
+    headingContainer.appendChild(version);
     formGroup.className = 'form-group';
     formGroup.style.marginBottom = '15px';
     formGroup.appendChild(createSlider('tabWidth', I18n.t('tabpreferences.prefs.tab_width'), 'tabprefs_tabwidth', 15, resizeTabs));
@@ -366,8 +369,7 @@
       localStorage.removeItem('tabprefs_hidePermissions');
     }
 
-    section.appendChild(version);
-    section.appendChild(heading);
+    section.appendChild(headingContainer);
     section.appendChild(formGroup);
     section.appendChild(configExportImport);
 
