@@ -133,7 +133,8 @@
           v1_3: '- Added export/import functionality\n- Make it possible to recolour tabs\n- Recover from imperial/metric unit switches',
           v1_3_1: '- Technical release to deal with an upcoming change',
           v1_4_0: '- Filter icons by text\n- Fix script startup stability\n- Possibility to replace feed while retaining ability to refresh\n- Put all styling in CSS classes',
-          v1_4_1: '- Fix for future WME version'
+          v1_4_1: '- Fix for future WME version',
+          v1_4_2: '- Fix for new WME sidepanel'
         }
       },
       nl: {
