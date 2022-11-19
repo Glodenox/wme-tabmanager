@@ -4,7 +4,7 @@
 // @description Adjust the tabs in the Waze Map Editor to your liking by adjusting their size, hiding tabs or even renaming tabs completely.
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
 // @icon        data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAAA3CAYAAACo29JGAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3wwCEzYBoD6dGgAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAACfUlEQVRo3u3aTUgUYRjA8b/bjKyziyyTH2VpKYoHDxLkaTFvRSJCeBHxpFBHCULoWgcpqL3VqZaQIIKULlKSBoqIGJjQQTE2T8YqbpCzrwuz63Zwxy5+pLTtzvY8txle5n1+PO/XDFP0c8tKU6DhoYBDcIITnOAE99/jtKMa2LaNUnGSts3Ozk5+VMTjQdN1jBIDvbj4wHZFh51QtpXCsrbyujo+nx/D5zte5Wzb3oOZponf70fTtLwAJZNJLMsiFosRj1vour5vBQ+cc0rF92CBQCBvYACaphEIBDBNczfXbXW8BSWVSgFgGEbeDkknNyfXP8clkwAUHzJhcx1Obk6uss8JTnCCy93x6+/FJgvvp1hVBhevXOPS6UKo3NoUI++WSDDHyMMQodBTJpbAmn/D6EIiq10feLbcWI8CUFdXd/KnJxZ4cusOr76BYZxCqQzGa2CkFIpaeh+/4GbzybuIRCIAlFdU/uPKeSs5X1UC2L9hAAmFsoGzLbQ0unJYWnz5MMemx7t7WRrk9vA4U2PPGQiWZpDf+Twxw1fLdbhJXt4LEZ5eB6CmvZsbF7zgr6eru50agPVpwg/u8mzSdbgKquvLMA19d63ciOIMzLXIKpsAuoFZdo7yUjcuKMBKuJ/+8AqgYzZeptmMsfhpmZgNtAww9qgLP25cUJhh9O2K8/pLbHmWj7MZGMD8ME9mXLvPBenta+NM7XUGh3poyNxt6Bli8Go15W199AZdfEKp6rzP606ARaJN4/yIVtHaGqSjKUhHlvvO+pzLduRwzslbgeAEJzjBCS6331CczdrtsZ+joCtXlE6n5Q8iwQlOcIITnOAEJzjBCe6I+AVAjNynsKm5WAAAAABJRU5ErkJggg==
-// @version     1.4.2
+// @version     1.4.3
 // @require     https://bowercdn.net/c/html.sortable-0.4.4/dist/html.sortable.js
 // @grant       none
 // ==/UserScript==
@@ -15,7 +15,7 @@
   var tabReopened = false, // have we reopened the tab from last time?
       timesRan = 0, // variable for sanity check
       tabsSecured = -1, // Up until which index have we fully rearranged the tabs?
-      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.2.3', '1.2.4', '1.3', '1.3.1', '1.4.0', '1.4.1', '1.4.2'],
+      versions = ['0.1', '0.2', '1.0', '1.0.1', '1.0.2', '1.0.3', '1.0.4', '1.0.5', '1.1', '1.1.1', '1.1.2', '1.2', '1.2.1', '1.2.2', '1.2.3', '1.2.4', '1.3', '1.3.1', '1.4.0', '1.4.1', '1.4.2', '1.4.3'],
       styleElement, // Style element to reuse whenever it gets removed by the WME (user login, for example)
       Storage = (function() {
         var hashes = (localStorage.tabprefs_hidden ? localStorage.tabprefs_hidden.split(',') : []),
@@ -94,6 +94,7 @@
           title: 'Tab Manager',
           tab_width: 'Tab width',
           tab_height: 'Tab height',
+          tab_order: 'Tab order',
           reset: 'reset',
           preserve_tab: 'Preserve opened tab over sessions',
           remove_tab: 'Tab no longer available. Remove entry?',
@@ -134,7 +135,8 @@
           v1_3_1: '- Technical release to deal with an upcoming change',
           v1_4_0: '- Filter icons by text\n- Fix script startup stability\n- Possibility to replace feed while retaining ability to refresh\n- Put all styling in CSS classes',
           v1_4_1: '- Fix for future WME version',
-          v1_4_2: '- Fix for new WME sidepanel'
+          v1_4_2: '- Fix for new WME sidepanel',
+          v1_4_3: '- Restyling with new WME elements'
         }
       },
       nl: {
@@ -142,6 +144,7 @@
           title: 'Tab manager',
           tab_width: 'Tabbreedte',
           tab_height: 'Tabhoogte',
+          tab_order: 'Tabvolgorde',
           reset: 'reset',
           preserve_tab: 'Geopende tab bijhouden tussen sessies',
           remove_tab: 'Tab niet langer beschikbaar. Verwijderen?',
@@ -292,7 +295,7 @@
         version = document.createElement('a'),
         headingContainer = document.createElement('div'),
         heading = document.createElement('wz-overline'),
-        tabOrderPanel = document.createElement('ul'),
+        tabOrderPanel = document.createElement('div'),
         configExportImport = document.createElement('div'),
         configExport = document.createElement('a'),
         configImport = document.createElement('input'),
@@ -319,6 +322,10 @@
       }
     }));
 
+    var tabOrderLabel = document.createElement('label');
+    tabOrderLabel.textContent = I18n.t('tabpreferences.prefs.tab_order');
+    tabOrderLabel.style = 'padding-top: 8px';
+    formGroup.appendChild(tabOrderLabel);
     tabOrderPanel.className = 'result-list';
     tabOrderPanel.id = 'tabPreferencesOrder';
     formGroup.appendChild(tabOrderPanel);
@@ -382,20 +389,11 @@
 
   // Add options to the preferences tab
   function createOption(name, description, checked, eventHandler) {
-    var input = document.createElement('input');
-    input.type = 'checkbox';
-    input.name = name;
-    input.id = name + '-on';
-    input.checked = checked;
-    input.addEventListener('click', eventHandler);
-    var label = document.createElement('label');
-    label.htmlFor = name + '-on';
-    label.appendChild(document.createTextNode(description));
-    var container = document.createElement('div');
-    container.className = 'controls-container';
-    container.appendChild(input);
-    container.appendChild(label);
-    return container;
+    var checkbox = document.createElement('wz-checkbox');
+    checkbox.addEventListener('click', eventHandler);
+    checkbox.checked = checked;
+    checkbox.textContent = description;
+    return checkbox;
   }
 
   // Add sliders to the preferences tab
@@ -630,8 +628,9 @@
       tabPanel.removeChild(tabPanel.firstChild);
     }
     order.forEach(function(hash, index, obj) {
-      var item = document.createElement('li'),
-          name = document.createElement('span'),
+      var card = document.createElement('wz-card'),
+          item = document.createElement('div'),
+          name = document.createElement('div'),
           buttons = document.createElement('div'),
           moveUp = createIconButton('fa-chevron-up', I18n.t('tabpreferences.prefs.move_up_tab')),
           moveDown = createIconButton('fa-chevron-down', I18n.t('tabpreferences.prefs.move_down_tab')),
@@ -643,80 +642,14 @@
       if (anchor) {
         tabConfig = Storage.getTabConfig(hash);
       }
-      // Add action buttons
-      if (!anchor) {
-        remove.addEventListener('click', function() {
-          obj.splice(index, 1);
-          localStorage.tabprefs_preserveOrder = obj.join();
-          refreshTabPanel();
-        });
-        buttons.appendChild(remove);
-      } else {
-        if (hash !== '#sidepanel-prefs') { // Prevent the preferences tab from being hidden and getting locked out
-          hide.addEventListener('click', function() {
-            if (Storage.isTabVisible(hash)) {
-              this.classList.remove('fa-eye');
-              this.classList.add('fa-eye-slash');
-              anchor.parentNode.style.display = 'none';
-              Storage.setTabVisibility(hash, false);
-            } else {
-              this.classList.remove('fa-eye-slash');
-              this.classList.add('fa-eye');
-              anchor.parentNode.style.display = 'block';
-              Storage.setTabVisibility(hash, true);
-            }
-            refreshTabPanel();
-          });
-          hide.addEventListener('mouseenter', function() {
-            this.classList.toggle('fa-eye-slash', Storage.isTabVisible(hash));
-            this.classList.toggle('fa-eye', !Storage.isTabVisible(hash));
-          });
-          hide.addEventListener('mouseleave', function() {
-            this.classList.toggle('fa-eye', Storage.isTabVisible(hash));
-            this.classList.toggle('fa-eye-slash', !Storage.isTabVisible(hash));
-          });
-          buttons.appendChild(hide);
-        }
-        edit.addEventListener('click', function() {
-          if (!item.details) {
-            createTabConfigPane(item, hash);
-          } else {
-            item.removeChild(item.details);
-            item.details = false;
-          }
-        });
-        buttons.appendChild(edit);
-      }
-      if (index === order.length - 1) {
-        moveDown.style.cursor = 'default';
-        moveDown.style.color = '#aaa';
-      } else {
-        moveDown.addEventListener('click', function() {
-          obj.splice(index+1, 0, obj.splice(index, 1)[0]);
-          localStorage.tabprefs_preserveOrder = obj.join();
-          reorderTabs(true);
-          refreshTabPanel();
-        });
-      }
-      buttons.appendChild(moveDown);
-      if (index === 0) {
-        moveUp.style.color = '#aaa';
-        moveUp.style.cursor = 'default';
-      } else {
-        moveUp.addEventListener('click', function() {
-          obj.splice(index-1, 0, obj.splice(index, 1)[0]);
-          localStorage.tabprefs_preserveOrder = obj.join();
-          reorderTabs(true);
-          refreshTabPanel();
-        });
-      }
-      buttons.appendChild(moveUp);
-      buttons.style.float = 'right';
-      item.className = 'result';
-      item.style.cursor = 'default';
-      item.appendChild(buttons);
-      var handle = document.createElement('span');
-      handle.className = 'fa fa-reorder tab-manager-list-handle';
+      card.className = 'result list-item-card';
+      card.style.cursor = 'default';
+      item.className = 'tab-manager-list-card';
+      card.appendChild(item);
+      // Add item handle
+      var handle = document.createElement('div');
+      handle.className = 'tab-manager-list-handle';
+      handle.innerHTML = '<i class="fa fa-reorder"></i>';
       item.appendChild(handle);
       name.className = 'tab-manager-tab-handle-name';
       // Add name and replacement
@@ -763,7 +696,77 @@
         name.appendChild(document.createTextNode(hash));
       }
       item.appendChild(name);
-      tabPanel.appendChild(item);
+      // Add action buttons
+      if (!anchor) {
+        remove.addEventListener('click', function() {
+          obj.splice(index, 1);
+          localStorage.tabprefs_preserveOrder = obj.join();
+          refreshTabPanel();
+        });
+        buttons.appendChild(remove);
+      } else {
+        if (hash !== '#sidepanel-prefs') { // Prevent the preferences tab from being hidden and getting locked out
+          hide.addEventListener('click', function() {
+            if (Storage.isTabVisible(hash)) {
+              this.classList.remove('fa-eye');
+              this.classList.add('fa-eye-slash');
+              anchor.parentNode.style.display = 'none';
+              Storage.setTabVisibility(hash, false);
+            } else {
+              this.classList.remove('fa-eye-slash');
+              this.classList.add('fa-eye');
+              anchor.parentNode.style.display = 'block';
+              Storage.setTabVisibility(hash, true);
+            }
+            refreshTabPanel();
+          });
+          hide.addEventListener('mouseenter', function() {
+            this.classList.toggle('fa-eye-slash', Storage.isTabVisible(hash));
+            this.classList.toggle('fa-eye', !Storage.isTabVisible(hash));
+          });
+          hide.addEventListener('mouseleave', function() {
+            this.classList.toggle('fa-eye', Storage.isTabVisible(hash));
+            this.classList.toggle('fa-eye-slash', !Storage.isTabVisible(hash));
+          });
+          buttons.appendChild(hide);
+        }
+        edit.addEventListener('click', function() {
+          if (!item.details) {
+            createTabConfigPane(item, hash);
+          } else {
+            item.parentNode.removeChild(item.details);
+            item.details = false;
+          }
+        });
+        buttons.appendChild(edit);
+      }
+      if (index === order.length - 1) {
+        moveDown.style.cursor = 'default';
+        moveDown.style.color = '#aaa';
+      } else {
+        moveDown.addEventListener('click', function() {
+          obj.splice(index+1, 0, obj.splice(index, 1)[0]);
+          localStorage.tabprefs_preserveOrder = obj.join();
+          reorderTabs(true);
+          refreshTabPanel();
+        });
+      }
+      buttons.appendChild(moveDown);
+      if (index === 0) {
+        moveUp.style.color = '#aaa';
+        moveUp.style.cursor = 'default';
+      } else {
+        moveUp.addEventListener('click', function() {
+          obj.splice(index-1, 0, obj.splice(index, 1)[0]);
+          localStorage.tabprefs_preserveOrder = obj.join();
+          reorderTabs(true);
+          refreshTabPanel();
+        });
+      }
+      buttons.appendChild(moveUp);
+      buttons.className = 'tab-manager-card-buttons';
+      item.appendChild(buttons);
+      tabPanel.appendChild(card);
     });
     sortable(tabPanel);
   }
@@ -879,28 +882,8 @@
     iconBtn.addEventListener('click', function() {
       if (!iconBtn.icons) {
         var iconsFilterContainer = document.createElement('div'),
-            iconsFilter = createFilterInput((event) => {
-              var filterText = event.target.value;
-              while (iconFilterList.firstChild) {
-                iconFilterList.removeChild(iconFilterList.firstChild);
-              }
-              _.each(document.querySelectorAll('.tab-manager-select-icon'), (icon) => icon.classList.add('hidden'));
-              Object.keys(iconKeywords).forEach((font) => {
-                Object.keys(iconKeywords[font])
-                  .filter((keyword) => keyword.indexOf(filterText) != -1)
-                  .forEach((keyword) => {
-                  iconKeywords[font][keyword].forEach((code) => {
-                    document.querySelector('.tab-manager-select-icon[data-char-code="' + code + '"]').classList.remove('hidden');
-                  });
-                  iconFilterList.appendChild(new Option(keyword));
-                });
-              });
-            });
+            icons = document.createElement('div');
         iconsFilterContainer.className = 'tab-manager-icons-filter';
-        iconsFilterContainer.appendChild(iconsFilter);
-        details.insertBefore(iconsFilterContainer, reset);
-        iconBtn.filterContainer = iconsFilterContainer;
-        var icons = document.createElement('div');
         icons.className = 'tab-manager-icons-container';
         // FontAwesome: symbols start at 'F000' (= 61440) and end at 'F2E0' in version 4.7 of FontAwesome (Waze uses 4.7)
         for (var i = 61440; i <= 62177; i++) {
@@ -918,17 +901,35 @@
               charCode: this.dataset.charCode
             };
             Storage.setTabConfig(hash, tabConfig);
-            container.removeChild(details);
+            container.parentNode.removeChild(details);
             renameTabs(hash);
             refreshTabPanel();
           });
           icons.appendChild(icon);
         }
-        details.insertBefore(icons, reset);
-        iconBtn.icons = icons;
+        iconsFilterContainer.appendChild(icons);
+        var iconsFilter = createFilterInput((event) => {
+          var filterText = event.target.value;
+          while (iconFilterList.firstChild) {
+            iconFilterList.removeChild(iconFilterList.firstChild);
+          }
+          _.each(document.querySelectorAll('.tab-manager-select-icon'), (icon) => icon.classList.add('hidden'));
+          Object.keys(iconKeywords).forEach((font) => {
+            Object.keys(iconKeywords[font])
+              .filter((keyword) => keyword.indexOf(filterText) != -1)
+              .forEach((keyword) => {
+              iconKeywords[font][keyword].forEach((code) => {
+                document.querySelector('.tab-manager-select-icon[data-char-code="' + code + '"]').classList.remove('hidden');
+              });
+              iconFilterList.appendChild(new Option(keyword));
+            });
+          });
+        });
+        iconsFilterContainer.appendChild(iconsFilter);
+        details.insertBefore(iconsFilterContainer, reset);
+        iconBtn.filterContainer = iconsFilterContainer;
       } else {
         details.removeChild(iconBtn.filterContainer);
-        details.removeChild(iconBtn.icons);
         iconBtn.icons = false;
       }
     });
@@ -951,7 +952,7 @@
     reset.className = 'btn btn-danger';
     reset.addEventListener('click', function() {
       Storage.removeTabConfig(hash);
-      container.removeChild(details);
+      container.parentNode.removeChild(details);
       container.details = false;
       updateTabs();
       refreshTabPanel();
@@ -961,14 +962,14 @@
     close.style.margin = '0 5px';
     close.className = 'btn btn-default';
     close.addEventListener('click', function() {
-      container.removeChild(details);
+      container.parentNode.removeChild(details);
       container.details = false;
       refreshTabPanel();
     });
     details.appendChild(close);
     details.className = 'tab-manager-tab-details';
     container.details = details;
-    container.appendChild(details);
+    container.after(details);
   }
 
   function showMessage(message) {
@@ -985,39 +986,44 @@
     if (!styleElement) {
       var styleElement = document.createElement('style');
       styleElement.textContent = `
+#sidepanel-prefs .controls-container {
+  padding: 10px 0;
+}
+#tabPreferencesOrder {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.tab-manager-list-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
 .tab-manager-list-handle {
-  padding: 3px;
   color: #c2c2c2;
   cursor: move;
-  font-size: 11px;
-  float: left;
-  margin-left: -16px;
-}
-.tab-manager-tab-details {
-  border-left: 5px solid #eee;
-  margin: 10px -10px 0 -16px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: start;
-}
-.tab-manager-tab-details > div:nth-child(odd) {
-  flex: auto;
-  width: 53%;
-  padding: 0 4%;
-  margin: 5px 0;
-  text-align: right;
-}
-.tab-manager-tab-details > div:nth-child(even) {
-  flex: auto;
-  width: 47%;
-  margin: 5px 0;
+  font-size: 20px;
 }
 .tab-manager-tab-handle-name {
-  cursor: default;
-  margin-left: 3px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #3d3d3d;
+  border-right: 1px solid rgb(213, 215, 219);
+  padding-right: 3px;
+  flex-grow: 1;
+}
+.tab-manager-card-buttons {
+  flex-shrink: 0;
+}
+.tab-manager-tab-details {
+  border-top: 1px solid rgb(213, 215, 219);
+  margin-top: 10px;
+  padding-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  font-size: 14px;
+}
+.tab-manager-tab-details > div:nth-child(odd) {
+  text-align: right;
 }
 .tab-manager-add-icon-button {
   margin-left: 10px;
@@ -1032,14 +1038,21 @@
   outline: none;
 }
 .tab-manager-tab-details > div.tab-manager-icons-filter {
+  grid-column: 1 / span 2;
   text-align: left;
-  width: 100%;
   padding: 3px;
-  background-color: #eee;
+  border-top: 1px solid rgb(213, 215, 219);
+  margin-top: 10px;
+  padding-top: 10px;
 }
-.tab-manager-tab-details > div.tab-manager-icons-container {
+.tab-manager-icons-filter > .form-search {
+  margin-bottom: 5px;
+}
+.tab-manager-icons-filter > .form-search > .search-query {
+  padding-left: 16px;
+}
+div.tab-manager-icons-filter > .tab-manager-icons-container {
   height: 10em;
-  width: 100%;
   padding: 3px;
   overflow: auto;
   font-size: 12px;
